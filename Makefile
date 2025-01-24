@@ -1,18 +1,19 @@
 # Makefile for AI Agent Project Setup
+PYTHON_REQUIRED = 3.11
 PYTHON = python3.11
 VENV = .venv
 ACTIVATE = . $(VENV)/bin/activate
 
-# Folder structure based on your initial request
+# Folder structure
 DIRS = \
 	config \
 	data/docs \
 	src/agents \
-	src/utils/ \
+	src/utils \
 	src/workflows \
 	tests/utils
 
-.PHONY: help setup clean test
+.PHONY: help setup clean test check-python re
 
 help:
 	@echo "AI Agent Project Management"
@@ -20,18 +21,35 @@ help:
 	@echo "  make setup    - Create folder structure and setup environment"
 	@echo "  make test     - Run environment validation tests"
 	@echo "  make clean    - Remove virtual environment and build artifacts"
+	@echo "  make re       - Full clean and rebuild"
 
-setup: create-dirs venv install-torch install-deps test
+setup: check-python create-dirs venv update-pip install-torch install-deps test
+
+check-python:
+	@echo "Checking Python version..."
+	@if ! which $(PYTHON) > /dev/null; then \
+		echo "\033[31mERROR: Python $(PYTHON_REQUIRED) not found!\033[0m"; \
+		echo "Recommendation: Install Python $(PYTHON_REQUIRED) using pyenv for better version management"; \
+		echo "1. Install pyenv: https://github.com/pyenv/pyenv#installation"; \
+		echo "2. Install Python $(PYTHON_REQUIRED): pyenv install 3.11.6"; \
+		echo "3. Set as default: pyenv global 3.11.6"; \
+		exit 1; \
+	fi
+	@echo "Python $(PYTHON_REQUIRED) verified (\033[32m$$(python3.11 --version)\033[0m)"
 
 create-dirs:
 	@echo "Creating folder structure..."
 	@mkdir -p $(DIRS)
 	@touch config/settings.py src/main.py
 
-venv:
-	@echo "Creating Python 3.11 virtual environment..."
+venv: check-python
+	@echo "Creating Python $(PYTHON_REQUIRED) virtual environment..."
 	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
 	@echo "Virtual environment created in $(VENV)"
+
+update-pip: venv
+	@echo "Upgrading pip to latest version..."
+	@$(ACTIVATE) && pip install --upgrade pip
 
 install-torch: venv
 	@echo "Installing PyTorch 2.5.0 with CUDA 12.4 support..."
@@ -45,15 +63,19 @@ install-deps: venv
 	@echo "Installing project dependencies..."
 	@$(ACTIVATE) && pip install -r requirements.txt
 
-test:
+test: install-deps
 	@echo "Running environment validation tests..."
-	@python tests/utils/gpu_check.py
-	@python tests/utils/test_versions.py
-	@python tests/utils/test_install.py
-	@echo "All tests passed!"
+	@$(ACTIVATE) && \
+		python tests/utils/gpu_check.py && \
+		python tests/utils/test_versions.py && \
+		python tests/utils/test_install.py
+	@echo "\033[32mAll tests passed!\033[0m"
 
 clean:
 	@echo "Cleaning up..."
 	@rm -rf $(VENV)
 	@rm -rf __pycache__ */__pycache__ */*/__pycache__
+	@find . -name '*.pyc' -delete
 	@echo "Clean complete"
+
+re: clean setup
