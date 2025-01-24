@@ -1,3 +1,0 @@
-def run_workflow(agent):
-    response = agent.chat("Analyze soil data...")
-    # Process response
