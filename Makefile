@@ -1,8 +1,9 @@
+
+SHELL := /bin/bash
 # Makefile for AI Agent Project Setup
 PYTHON_REQUIRED = 3.11
 PYTHON = python3.11
 VENV = .venv
-ACTIVATE = . $(VENV)/bin/activate
 
 # Folder structure
 DIRS = \
@@ -49,11 +50,11 @@ venv: check-python
 
 update-pip: venv
 	@echo "Upgrading pip to latest version..."
-	@$(ACTIVATE) && pip install --upgrade pip
+	@pip install --upgrade pip
 
 install-torch: venv
 	@echo "Installing PyTorch 2.5.0 with CUDA 12.4 support..."
-	@$(ACTIVATE) && pip install \
+	@pip install \
 		torch==2.5.0+cu124 \
 		torchvision==0.20.0+cu124 \
 		torchaudio==2.5.0+cu124 \
@@ -61,14 +62,13 @@ install-torch: venv
 
 install-deps: venv
 	@echo "Installing project dependencies..."
-	@$(ACTIVATE) && pip install -r requirements.txt
+	@pip install -r requirements.txt
 
-test: install-deps
+test:
 	@echo "Running environment validation tests..."
-	@$(ACTIVATE) && \
-		python tests/utils/gpu_check.py && \
-		python tests/utils/test_versions.py && \
-		python tests/utils/test_install.py
+	@python tests/utils/gpu_check.py && \
+	 python tests/utils/test_versions.py && \
+	 python tests/utils/test_install.py
 	@echo "\033[32mAll tests passed!\033[0m"
 
 clean:
