@@ -4,7 +4,6 @@ from src.agents.teacher_agent import TeacherAgent
 from src.agents.reviewer_agent import ReviewerAgent
 from llama_index.core import Settings
 from dotenv import load_dotenv
-from config import settings
 
 load_dotenv()
 
@@ -16,7 +15,7 @@ def main():
     reviewer = ReviewerAgent()
     
     # User input
-    query = input("Ask a question for a young child: ")
+    query = input("Ask me a question: ")
     
     # Step 1: Analyze and refine query
     refined_query = analyzer.analyze(query)
@@ -35,5 +34,6 @@ def main():
     print("\nFinal Answer:")
     print(final_response)
 
+### ENTRYPOINT ###
 if __name__ == "__main__":
     main()

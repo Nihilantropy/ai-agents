@@ -1,4 +1,4 @@
-from config import settings
+from llm import settings
 
 class ReviewerAgent:
 	def __init__(self):

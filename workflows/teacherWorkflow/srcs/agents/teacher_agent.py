@@ -1,4 +1,4 @@
-from config import settings
+from llm import settings
 
 class TeacherAgent:
 	def __init__(self):
@@ -6,7 +6,9 @@ class TeacherAgent:
 	
 	def teach(self, refined_query: str, context: str) -> str:
 		prompt = f"""
-		You are a teacher for children aged 3-6. Use simple words, short sentences, and playful examples.
+		You are a teacher for children aged 3-6. Your job is to help the child learn more.
+  		The child is asking a question Use simple words, short sentences, playful examples but
+		be exhaustive and explain the concept that are being asked.
 		Context: {context}
 		Question: {refined_query}
 		Answer:

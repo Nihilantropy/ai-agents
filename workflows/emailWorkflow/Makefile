@@ -5,14 +5,7 @@ PYTHON_REQUIRED = 3.11
 PYTHON = python3.11
 VENV = .venv
 
-# Folder structure
-DIRS = \
-	config \
-	data/docs \
-	src/agents \
-	src/utils \
-	src/workflows \
-	tests/utils
+ACTIVATE = source $(VENV)/bin/activate
 
 .PHONY: help setup clean test check-python re
 
@@ -24,7 +17,7 @@ help:
 	@echo "  make clean    - Remove virtual environment and build artifacts"
 	@echo "  make re       - Full clean and rebuild"
 
-setup: check-python create-dirs venv update-pip install-torch install-deps test
+setup: check-python venv update-pip install-torch install-deps test
 
 check-python:
 	@echo "Checking Python version..."
@@ -38,11 +31,6 @@ check-python:
 	fi
 	@echo "Python $(PYTHON_REQUIRED) verified ($$(python3.11 --version))"
 
-create-dirs:
-	@echo "Creating folder structure..."
-	@mkdir -p $(DIRS)
-	@touch config/settings.py src/main.py
-
 venv: check-python
 	@echo "Creating Python $(PYTHON_REQUIRED) virtual environment..."
 	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
@@ -50,11 +38,11 @@ venv: check-python
 
 update-pip: venv
 	@echo "Upgrading pip to latest version..."
-	@pip install --upgrade pip
+	@$(ACTIVATE); pip install --upgrade pip
 
 install-torch: venv
 	@echo "Installing PyTorch 2.5.0 with CUDA 12.4 support..."
-	@pip install \
+	@$(ACTIVATE); pip install \
 		torch==2.5.0+cu124 \
 		torchvision==0.20.0+cu124 \
 		torchaudio==2.5.0+cu124 \
@@ -62,13 +50,13 @@ install-torch: venv
 
 install-deps: venv
 	@echo "Installing project dependencies..."
-	@pip install -r requirements.txt
+	@$(ACTIVATE); pip install -r requirements.txt
 
 test:
 	@echo "Running environment validation tests..."
-	@python tests/utils/gpu_check.py && \
-	 python tests/utils/test_versions.py && \
-	 python tests/utils/test_install.py
+	@$(ACTIVATE); python tests/utils/gpu_check.py && \
+	 				python tests/utils/test_versions.py && \
+	 				python tests/utils/test_install.py
 	@echo "All tests passed!"
 
 clean:

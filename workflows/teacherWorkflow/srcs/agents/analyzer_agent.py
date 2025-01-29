@@ -1,7 +1,6 @@
-from llama_index.llms.ollama import Ollama
 import httpx
 import logging
-from config import settings
+from llm import settings
 
 logging.basicConfig(level=logging.INFO)
 
@@ -10,9 +9,12 @@ class AnalyzerAgent:
 		self.llm = settings._llm
 
 	def analyze(self, query: str) -> str:
-		prompt = f"""Rephrase this query for a preschool teacher:
+		prompt = f"""A child  asked a question, analyze it. If the question is well done, simply return it as it is.
+		If the question has problems (like mispell, illogical connection etc...), rephrase it correctly. The output of this question will
+		be passed to another ai-agent that will respond to the question. Your only job is to analyze it and give teh most clear and clean
+		result of this analysis to the teacher-agent as a response. The original query is as follow:
 		Original: {query}
-		Simplified:"""
+		Result:"""
 		
 		try:
 			response = self.llm.complete(prompt)
