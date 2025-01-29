@@ -1,28 +1,39 @@
-from llama_index.llms.ollama import Ollama
-from llama_parse import LlamaParse
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, PromptTemplate
-from llama_index.core.embeddings import resolve_embed_model
-from llama_index.core.tools import QueryEngineTool, ToolMetadata
-from llama_index.core.agent import ReActAgent
-from pydantic import BaseModel
-from llama_index.core.output_parsers import PydanticOutputParser
-from llama_index.core.query_pipeline import QueryPipeline
-from prompts import context, code_parser_template
-from code_reader import code_reader
+from src.rag.index import build_index
+from src.agents.analyzer_agent import AnalyzerAgent
+from src.agents.teacher_agent import TeacherAgent
+from src.agents.reviewer_agent import ReviewerAgent
+from llama_index.core import Settings
 from dotenv import load_dotenv
-import os
-import ast
+from config import settings
 
 load_dotenv()
 
-llm = Ollama(model="deepseek-r1:14b", request_timeout=30.0)
+def main():
+    # Initialize components
+    index = build_index()
+    analyzer = AnalyzerAgent()
+    teacher = TeacherAgent()
+    reviewer = ReviewerAgent()
+    
+    # User input
+    query = input("Ask a question for a young child: ")
+    
+    # Step 1: Analyze and refine query
+    refined_query = analyzer.analyze(query)
+    
+    # Step 2: Retrieve RAG context
+    retriever = index.as_retriever(similarity_top_k=2)
+    context_nodes = retriever.retrieve(refined_query)
+    context = "\n".join([n.text for n in context_nodes])
+    
+    # Step 3: Generate child-friendly response
+    response = teacher.teach(refined_query, context)
+    
+    # Step 4: Review and finalize
+    final_response = reviewer.review(response)
+    
+    print("\nFinal Answer:")
+    print(final_response)
 
-parser = LlamaParse(result_type="markdown")
-
-file_extractor = {".pdf": parser}
-
-documents = SimpleDirectoryReader("./data/docs", file_extractor=file_extractor).load_data()
-
-embed_model = resolve_embed_model("local:BAAI/bge-m3")
-vector_index = VectorStoreIndex.from_documents(documents, embed_model=embed_model)
-query_engine = vector_index.as_query_engine(llm=llm)
+if __name__ == "__main__":
+    main()

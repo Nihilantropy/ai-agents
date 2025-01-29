@@ -29,14 +29,14 @@ setup: check-python create-dirs venv update-pip install-torch install-deps test
 check-python:
 	@echo "Checking Python version..."
 	@if ! which $(PYTHON) > /dev/null; then \
-		echo "\033[31mERROR: Python $(PYTHON_REQUIRED) not found!\033[0m"; \
+		echo "ERROR: Python $(PYTHON_REQUIRED) not found!"; \
 		echo "Recommendation: Install Python $(PYTHON_REQUIRED) using pyenv for better version management"; \
 		echo "1. Install pyenv: https://github.com/pyenv/pyenv#installation"; \
 		echo "2. Install Python $(PYTHON_REQUIRED): pyenv install 3.11.6"; \
 		echo "3. Set as default: pyenv global 3.11.6"; \
 		exit 1; \
 	fi
-	@echo "Python $(PYTHON_REQUIRED) verified (\033[32m$$(python3.11 --version)\033[0m)"
+	@echo "Python $(PYTHON_REQUIRED) verified ($$(python3.11 --version))"
 
 create-dirs:
 	@echo "Creating folder structure..."
@@ -69,7 +69,7 @@ test:
 	@python tests/utils/gpu_check.py && \
 	 python tests/utils/test_versions.py && \
 	 python tests/utils/test_install.py
-	@echo "\033[32mAll tests passed!\033[0m"
+	@echo "All tests passed!"
 
 clean:
 	@echo "Cleaning up..."

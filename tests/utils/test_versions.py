@@ -4,7 +4,7 @@ import sys
 
 # Updated dependencies based on your Makefile and requirements
 dependencies = [
-    ("llama-index-core", "0.12.13"),
+    ("llama-index-core", "0.12.14"),
     ("llama-index-llms-ollama", "0.5.0"),
     ("torch", "2.5.0+cu124"),
     ("ollama", "0.4.7"),
