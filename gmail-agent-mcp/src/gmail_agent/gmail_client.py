@@ -38,43 +38,93 @@ class GmailClient:
             return False
         return True
     
-    def _authenticate_with_credentials(self) -> Optional[Credentials]:
-        """
-        Authenticate using the credentials file.
-        Returns credentials if successful, None otherwise.
-        """
-        try:
-            logger.info("Starting OAuth2 authentication...")
-            flow = InstalledAppFlow.from_client_secrets_file(
-                str(settings.credentials_file_path), 
-                settings.gmail_scopes
-            )
-            credentials = flow.run_local_server(port=0)
-            logger.info("OAuth2 authentication successful")
-            return credentials
-            
-        except Exception as e:
-            logger.error(f"OAuth2 authentication failed: {e}")
-            return None
-    
     def authenticate(self) -> bool:
         """
-        Authenticate with Gmail API using OAuth2.
+        Authenticate with Gmail API using the simplest possible method.
+        No local server, no complex setup - just manual code entry.
         Returns True if authentication successful, False otherwise.
         """
         # Step 1: Check if credentials file exists
         if not self._check_credentials_file():
             return False
         
-        # Step 2: Try to authenticate with credentials
-        credentials = self._authenticate_with_credentials()
-        if not credentials:
-            return False
+        creds = None
         
-        # Step 3: Build Gmail service
+        # Step 2: Try to load existing token
+        if settings.token_file_path.exists():
+            try:
+                creds = Credentials.from_authorized_user_file(
+                    str(settings.token_file_path), 
+                    settings.gmail_scopes
+                )
+                logger.info("Loaded existing credentials from token file")
+            except Exception as e:
+                logger.warning(f"Failed to load existing token: {e}")
+        
+        # Step 3: Refresh token if expired
+        if creds and creds.expired and creds.refresh_token:
+            try:
+                creds.refresh(Request())
+                logger.info("Refreshed expired credentials")
+            except Exception as e:
+                logger.warning(f"Failed to refresh credentials: {e}")
+                creds = None
+        
+        # Step 4: Authenticate if no valid credentials (SIMPLE METHOD)
+        if not creds or not creds.valid:
+            try:
+                logger.info("Starting simple OAuth2 authentication...")
+                
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    str(settings.credentials_file_path), 
+                    settings.gmail_scopes
+                )
+                
+                # Manual OAuth flow - no local server needed!
+                print("\n" + "="*60)
+                print("🔐 GMAIL AUTHENTICATION")
+                print("="*60)
+                print("📱 A web page will open in your browser")
+                print("🔑 Sign in and grant permissions") 
+                print("📋 Copy the authorization code and paste it here")
+                print("="*60)
+                
+                # Generate authorization URL
+                flow.redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'  # Special redirect for manual flow
+                auth_url, _ = flow.authorization_url(prompt='consent')
+                
+                print(f"\n🌐 Please visit this URL to authorize the application:")
+                print(f"   {auth_url}")
+                print()
+                
+                # Get authorization code from user
+                auth_code = input("📋 Enter the authorization code: ").strip()
+                
+                if not auth_code:
+                    logger.error("No authorization code provided")
+                    return False
+                
+                # Exchange code for credentials
+                flow.fetch_token(code=auth_code)
+                creds = flow.credentials
+                logger.info("Authentication successful!")
+                
+            except Exception as e:
+                logger.error(f"Authentication failed: {e}")
+                return False
+            
+            # Step 5: Save credentials for next time
+            try:
+                with open(settings.token_file_path, "w") as token:
+                    token.write(creds.to_json())
+                logger.info(f"Saved credentials to {settings.token_file_path}")
+            except Exception as e:
+                logger.error(f"Failed to save token: {e}")
+        
+        # Step 6: Build Gmail service
         try:
-            self.service = build('gmail', 'v1', credentials=credentials)
-            self.credentials = credentials
+            self.service = build('gmail', 'v1', credentials=creds)
+            self.credentials = creds
             logger.info("Gmail service initialized successfully!")
             return True
         except Exception as e:

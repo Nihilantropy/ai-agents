@@ -23,8 +23,7 @@ class Settings(BaseSettings):
     gmail_token_file: str = Field(default="token.json", description="OAuth2 token file")
     gmail_scopes: List[str] = Field(
         default=[
-            'https://www.googleapis.com/auth/gmail.readonly',
-            'https://www.googleapis.com/auth/gmail.metadata'
+            'https://www.googleapis.com/auth/gmail.readonly'
         ],
         description="Gmail API scopes"
     )
