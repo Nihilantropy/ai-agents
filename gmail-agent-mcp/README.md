@@ -157,3 +157,70 @@ Logs are written to:
 - `gmail_agent.log` file
 
 Adjust log level in `.env` file (`DEBUG`, `INFO`, `WARNING`, `ERROR`).
+
+## 🧪 Testing
+
+The project now has a proper test structure separated from the core functionality.
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/test_gmail_client.py -v
+
+# Run integration test manually (requires OAuth)
+python tests/test_gmail_client.py
+```
+
+### Test Structure
+
+```
+tests/
+├── __init__.py                     # Test package
+├── conftest.py                     # Pytest configuration
+└── test_gmail_client.py            # Gmail client tests
+```
+
+**Note**: Some tests require manual OAuth authentication and will be skipped in automated environments. Use the integration test for full functionality verification.
+
+## 📁 Updated Project Structure
+
+```
+gmail-agent-mcp/
+├── src/
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── settings.py              # Configuration
+│   ├── gmail_agent/
+│   │   ├── __init__.py
+│   │   └── gmail_client.py          # Gmail API client
+│   └── main.py                      # Core application logic
+├── tests/
+│   ├── __init__.py
+│   ├── conftest.py                  # Pytest configuration
+│   └── test_gmail_client.py         # Tests
+├── credentials/
+│   ├── credentials.json             # OAuth2 credentials (you add this)
+│   └── token.json                  # Auto-generated token
+├── pytest.ini                      # Pytest configuration
+├── run.py                          # Main entry point
+├── requirements.txt
+├── .env
+├── .gitignore
+└── README.md
+```
+
+## 🎯 What This Does
+
+The refactored application:
+- ✅ Separates core functionality from test logic
+- ✅ Provides proper test structure with pytest
+- ✅ Maintains all original functionality
+- ✅ Allows automated and manual testing
+- ✅ Sets up foundation for MCP server development
